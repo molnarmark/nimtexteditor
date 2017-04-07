@@ -9,7 +9,7 @@ var lineCount = strBuf.count("\n") + 1
 
 var
 
-  # the actual, current position of the cursor (might be able to deprecate)
+  # the actual, current position of the cursor (might be able to remove)
   cursorX = 0
   cursorY = 0
 
@@ -28,26 +28,36 @@ proc main() =
     strBuf = buffer.readAll()
     lineCount = strBuf.count("\n") + 1
     var count = 0
-    setCursorPos(0, 0)
     restLinesLength = 0
+
+    setCursorPos(4, 24)
+    stdout.write center("Nim Text Editor", 40, ' ').bgBlue.fgWhite
+    stdout.write center("By Molnár Márk", 40, ' ').bgBlue.fgWhite
+    setCursorPos(0, 0)
 
     for line in strBuf.split("\n"):
       count += 1
-      var strCount = $count
+      var strCount = " " & $count & " "
 
       if count == 1:
-        stdout.write strCount.bgWhite.fgBlack & "  " & line
+        stdout.write strCount.bgBlue.fgWhite & "  " & line
       else:
-        stdout.write "\n" &  strCount.bgWhite.fgBlack & "  " & line
+        stdout.write "\n" &  strCount.bgBlue.fgWhite & "  " & line
 
       cursorX = line.len
       cursorY = lineCount
 
-    setCursorPos(cursorLastX + 3, cursorY)
+    setCursorPos(1, lineCount + 1)
+    for x in countup(lineCount + 1, 24):
+      setCursorPos(1, x)
+      stdout.write " ~ ".bgBlue.fgWhite
+
+    if cursorLastX == 0: setCursorPos(cursorX + 6, cursorY) else: setCursorPos(cursorLastX + 6, cursorY)
     var keyInput = getch()
 
     if ord(keyInput) == 13:
       buffer.write("\n")
+      cursorY += 1
 
     elif ord(keyInput) == 3:
       setCursorPos(0, 0)
@@ -66,6 +76,7 @@ proc main() =
     elif ord(keyInput) != 68 and ord(keyInput) != 27 and ord(keyInput) != 91:
     # else:
       buffer.write keyInput
+
 
 main()
 echo "dakdhas"
