@@ -78,5 +78,4 @@ proc main() =
       buffer.write keyInput
 
 
-main()
-echo "dakdhas"
+mai
