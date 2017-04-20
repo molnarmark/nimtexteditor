@@ -78,4 +78,4 @@ proc main() =
       buffer.write keyInput
 
 
-mai
+main()
