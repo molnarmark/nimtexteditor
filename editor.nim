@@ -1,82 +1,60 @@
 import terminal
 import colorize
-import streams, strutils, os, asyncdispatch
+import streams, strutils, os, asyncdispatch, sequtils
 
-var input = readFile("test.nim")
-var buffer = newStringStream(input)
-var strBuf = buffer.readAll()
-var lineCount = strBuf.count("\n") + 1
+var input = readFile("test.nim").split("\n")
 
 var
-
-  # the actual, current position of the cursor (might be able to remove)
-  cursorX = 0
-  cursorY = 0
-
-  # variables tracking the latest position of the cursor
-  cursorLastX = 0
-  cursorLastY = 0
-
-  restLinesLength = 0
-  firstRun = true
+  # the actual, current position of the cursor
+  cursorY = input.len - 1
+  cursorX = input[cursorY].len + 1
 
 proc main() =
   while true:
-    showCursor()
     eraseScreen()
-    buffer.setPosition(0)
-    strBuf = buffer.readAll()
-    lineCount = strBuf.count("\n") + 1
-    var count = 0
-    restLinesLength = 0
-
-    setCursorPos(4, 24)
-    stdout.write center("Nim Text Editor", 40, ' ').bgBlue.fgWhite
-    stdout.write center("By Molnár Márk", 40, ' ').bgBlue.fgWhite
     setCursorPos(0, 0)
+    for line in input:
+      stdout.write line & "\n"
 
-    for line in strBuf.split("\n"):
-      count += 1
-      var strCount = " " & $count & " "
+    # draw
+    setCursorPos(cursorX, cursorY + 1)
 
-      if count == 1:
-        stdout.write strCount.bgBlue.fgWhite & "  " & line
-      else:
-        stdout.write "\n" &  strCount.bgBlue.fgWhite & "  " & line
-
-      cursorX = line.len
-      cursorY = lineCount
-
-    setCursorPos(1, lineCount + 1)
-    for x in countup(lineCount + 1, 24):
-      setCursorPos(1, x)
-      stdout.write " ~ ".bgBlue.fgWhite
-
-    if cursorLastX == 0: setCursorPos(cursorX + 6, cursorY) else: setCursorPos(cursorLastX + 6, cursorY)
     var keyInput = getch()
 
-    if ord(keyInput) == 13:
-      buffer.write("\n")
-      cursorY += 1
-
-    elif ord(keyInput) == 3:
+    if ord(keyInput) == 3:
       setCursorPos(0, 0)
       eraseScreen()
       quit()
 
-    elif ord(keyInput) == 67:
-      buffer.setPosition(buffer.getPosition() - cursorLastX)
-      if cursorLastX > 0: cursorLastX += 1 else: cursorLastX = cursorX + 1
+    elif ord(keyInput) == 13:
+      input[cursorY] = input[cursorY]
+      cursorY += 1
+      cursorX = 1
+      input.add("")
 
     elif ord(keyInput) == 68:
-      buffer.setPosition(buffer.getPosition() - cursorLastX)
-      if cursorLastX > 0: cursorLastX -= 1 else: cursorLastX = cursorX - 1
+      if cursorX == 1: continue
+      cursorX -= 1
 
+    elif ord(keyInput) == 67:
+      if cursorX <= input[cursorY].len:
+        cursorX += 1
 
-    elif ord(keyInput) != 68 and ord(keyInput) != 27 and ord(keyInput) != 91:
-    # else:
-      buffer.write keyInput
+    elif ord(keyInput) == 127:
+      if cursorX == 1: continue
+      var removeX = cursorX - 3
+      var removeEndX = cursorX - 1
+      input[cursorY] = input[cursorY][..removeX] & input[cursorY][removeEndX..input[cursorY].len]
+      cursorX -= 1
 
+    elif ord(keyInput) == 51:
+      var removeX = cursorX - 2
+      var removeEndX = cursorX
+      input[cursorY] = input[cursorY][..removeX] & input[cursorY][removeEndX..input[cursorY].len]
+      # cursorX -= 1
+
+    elif ord(keyInput) != 68 and ord(keyInput) != 27 and ord(keyInput) != 91 and ord(keyInput) != 126:
+      input[cursorY] = input[cursorY][..cursorX] & keyInput & input[cursorY][cursorX..input[cursorY].len]
+      cursorX += 1
 
 main()
-echo "dakdhas"
